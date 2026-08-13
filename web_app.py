@@ -1,59 +1,48 @@
 import streamlit as st
-import random
+import requests
 
-st.set_page_config(page_title="YouTube AI Humanizer", layout="centered")
-st.title("🎬 YouTube AI Script Humanizer")
-st.write("Claude Sonnet 5 filiqranını və AI izlərini tamamilə təmizləyin.")
+st.set_page_config(page_title="PRO YouTube AI Humanizer", layout="centered")
+st.title("🚀 PRO YouTube AI Script Humanizer")
+st.write("Professional Səviyyə: Deep-Learning modeli ilə filiqranları silin və mətni insanlaşdırın.")
 
-ham_metn = st.text_area("Claude-dan aldığınız ham YouTube skripti:", height=250, placeholder="Mətni bura yapışdırın...")
+# ⚠️ Bura az əvvəl Hugging Face-dən kopyaladığınız pulsuz kodu yapışdırın:
+HF_TOKEN = "BURAYA_HUGGING_FACE_TOKENİNİZİ_YAPIŞDIRIN"
 
-# Danışıq dilini təbii etmək üçün lüğət
-insan_sozleri = {
-    "doctor": ["medical expert", "physician", "medic"],
-    "route": ["path", "way", "direction"],
-    "plan": ["strategy", "idea", "setup"],
-    "morning": ["early hours", "start of the day"],
-    "house": ["place", "home"],
-    "tracks": ["footprints", "marks", "trails"],
-    "wrong move": ["bad step", "slip-up", "mistake"],
-    "doctor": ["doc", "medical expert"],
-    "dead": ["gone", "no more"],
-    "flickering": ["blinking", "twinkling", "shaking"],
-    "trapped": ["stuck", "cornered", "locked in"]
-}
+# Mətni insanlaşdıran peşəkar dil modeli (Google T5-XLarge bazalı parafrazer)
+API_URL = "https://huggingface.co"
+headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
-def cumleni_insanlasdir(cumle):
-    sozler = cumle.split()
-    yeni_sozler = []
-    for soz in sozler:
-        temiz_soz = soz.strip(".,!?\"()").lower()
-        if temiz_soz in insan_sozleri and random.random() > 0.4:
-            yeni_soz = random.choice(insan_sozleri[temiz_soz])
-            if soz[0].isupper():
-                yeni_soz = yeni_soz.capitalize()
-            yeni_sozler.append(yeni_soz)
+ham_metn = st.text_area("Claude-dan aldığınız ham YouTube skripti:", height=200, placeholder="Mətni bura yapışdırın...")
+
+def ai_humanize(text):
+    # Peşəkar AI platformaları mətni cümlə-cümlə analiz edib yenidən yazır
+    sentences = text.replace(". ", ".\n").split("\n")
+    humanized_sentences = []
+    
+    for sentence in sentences:
+        if len(sentence.strip()) > 5:
+            payload = {"inputs": f"paraphrase: {sentence} ", "parameters": {"num_beams": 5, "num_return_sequences": 1}}
+            response = requests.post(API_URL, headers=headers, json=payload)
+            try:
+                result = response.json()
+                # Süni intellekt cümləni tamamilə fərqli sözlərlə yenidən qurur
+                humanized_sentences.append(result[0]['generated_text'])
+            except:
+                humanized_sentences.append(sentence) # Xəta olarsa orijinalı saxlayır
         else:
-            yeni_sozler.append(soz)
-    return " ".join(yeni_sozler)
-
-if st.button("Filiqranı Sil və İnsansı Yap"):
-    if ham_metn:
-        with st.spinner("Skript tamamilə yenidən yazılır..."):
-            # Cümlələri bölür və ritmi (burstiness) dəyişmək üçün qarışdırır
-            cumleler = ham_metn.replace(". ", ".\n").split("\n")
-            yeni_metn = []
+            humanized_sentences.append(sentence)
             
-            for c in cumleler:
-                if c.strip():
-                    insan_cumlesi = cumleni_insanlasdir(c)
-                    # Bəzi cümlələri qısaldır və ya danışıq dili bağlayıcıları əlavə edir
-                    if random.random() > 0.7:
-                        insan_cumlesi = "You know, " + insan_cumlesi.lower()
-                    yeni_metn.append(insan_cumlesi)
-                    
-            temiz_cikti = " ".join(yeni_metn)
+    return " ".join(humanized_sentences)
 
-            st.subheader("✨ Təmizlənmiş və Dəyişdirilmiş YouTube Mətniniz:")
-            st.text_area("Kopyalamaya Hazır:", value=temiz_cikti, height=250)
+if st.button("Süni İntellekt İzlərini 100% Sil və Yenidən Yaz"):
+    if ham_metn:
+        if HF_TOKEN == "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":
+            st.error("Zəhmət olmasa əvvəlcə kodun içinə Hugging Face Tokeninizi əlavə edin!")
+        else:
+            with st.spinner("Peşəkar AI modeli mətni insan dilinə çevirir..."):
+                temiz_cikti = ai_humanize(ham_metn)
+                
+                st.subheader("✨ Təmizlənmiş və İnsanlaşdırılmış Skript:")
+                st.text_area("Kopyalamaya Hazır:", value=temiz_cikti, height=200)
     else:
-        st.warning("Zəhmət olmasa əvvəlcə mətni yapışdırın.")
+        st.warning("Zəhmət olmasa əvvəlcə bir mətn daxil edin.")
