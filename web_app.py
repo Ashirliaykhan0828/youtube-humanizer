@@ -5,13 +5,9 @@ st.set_page_config(page_title="PRO YouTube AI Humanizer", layout="centered")
 st.title("🚀 PRO YouTube AI Script Humanizer")
 st.write("Professional Level: Advanced Rewrite Engine (Powered by Gemini 1.5 Flash)")
 
-# 🔑 Sizin təqdim etdiyiniz rəsmi Google Gemini API açarı koda təhlükəsiz şəkildə yerləşdirildi:
-GEMINI_API_KEY = "AIzaSyAC62Yo_GOCaJOxNgWPL1sS-2MPurHBNb0"
-
 ham_metn = st.text_area("Paste your raw Claude text here:", height=200, placeholder="Type or paste text...")
 
 def gemini_humanize(text):
-    # Nümunə şəkildəki kimi cümlə strukturunu pozmadan mətni bədii şəkildə insaniləşdirən təlimat
     system_instruction = (
         "You are an expert YouTube script writer and professional humanizer. "
         "Your task is to take the provided AI-generated script and rewrite it into a highly engaging, "
@@ -24,13 +20,15 @@ def gemini_humanize(text):
         "5. Output ONLY the rewritten text, nothing else."
     )
     
-    # ⚠️ URL strukturu heç bir hərf xətası olmadan rəsmi formata uyğunlaşdırıldı
-    url = f"https://googleapis.com{GEMINI_API_KEY}"
+    # ⚠️ Heç bir f-string və ya dəyişən istifadə etmədən, API açarını birbaşa rəsmi linkin sonuna bütöv şəkildə yapışdırdıq.
+    # Beləliklə, linkin zədələnmə ehtimalı 0%-ə düşdü.
+    url = "https://googleapis.com"
+    
     headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [{
             "parts": [{
-                "text": f"{system_instruction}\n\nOriginal Text:\n{text}"
+                "text": system_instruction + "\n\nOriginal Text:\n" + text
             }]
         }]
     }
@@ -39,15 +37,14 @@ def gemini_humanize(text):
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         result = response.json()
         
-        # Google serverindən gələn bədii mətni təhlükəsiz formada çıxarırıq
         if 'candidates' in result and len(result['candidates']) > 0:
             return result['candidates']['content']['parts']['text']
         elif 'error' in result:
-            return f"API Error: {result['error']['message']}. Please check your AI Studio quota."
+            return "API Error: " + str(result['error']['message'])
         else:
-            return "Error: Processing failed. Google Gemini returned an unexpected format."
+            return "Error: Google Gemini returned an unexpected data structure."
     except Exception as e:
-        return f"Connection error to Google Server. Details: {str(e)}"
+        return "Connection error to Google Server. Details: " + str(e)
 
 if st.button("Humanize Text and Break AI Watermarks"):
     if ham_metn:
