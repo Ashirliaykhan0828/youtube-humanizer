@@ -1,45 +1,38 @@
 import streamlit as st
 import requests
+import re
 
 st.set_page_config(page_title="PRO YouTube AI Humanizer", layout="centered")
 st.title("🚀 PRO YouTube AI Script Humanizer")
-st.write("Professional Level: Remove watermarks and humanize text using Deep-Learning models.")
-
-# ⚠️ Hugging Face tokeninizi bura daxil edin:
-HF_TOKEN = "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" 
-
-API_URL = "https://huggingface.co"
-headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+st.write("Professional Level: Remove watermarks and structurally rewrite text using dual-translation loop.")
 
 ham_metn = st.text_area("Paste your raw Claude text here:", height=200, placeholder="Type or paste text...")
 
-def ai_humanize(text):
-    sentences = text.replace(". ", ".\n").split("\n")
-    humanized_sentences = []
+def translate_text(text, target_lang, source_lang='en'):
+    # Pulsuz və limitsiz beynəlxalq tərcümə mühərriki
+    url = f"https://googleapis.com{source_lang}&tl={target_lang}&dt=t&q={requests.utils.quote(text)}"
+    try:
+        response = requests.get(url, timeout=10)
+        result = response.json()
+        translated_chunks = [chunk[0] for chunk in result[0] if chunk[0]]
+        return "".join(translated_chunks)
+    except:
+        return text
+
+def pro_humanize(text):
+    # Addım 1: Mətni başqa bir dil qrupuna çevirərək daxili AI filiqran ritmini qırırıq
+    intermediate = translate_text(text, target_lang='de', source_lang='en') # İngilis -> Alman
+    # Addım 2: Mətni yenidən İngilis dilinə qaytarırıq (Cümlə strukturları tamamilə yenidən qurulur)
+    humanized = translate_text(intermediate, target_lang='en', source_lang='de') # Alman -> İngilis
     
-    for sentence in sentences:
-        if len(sentence.strip()) > 5:
-            payload = {"inputs": f"paraphrase: {sentence} ", "parameters": {"num_beams": 5, "num_return_sequences": 1}}
-            try:
-                response = requests.post(API_URL, headers=headers, json=payload, timeout=20)
-                result = response.json()
-                if isinstance(result, list) and len(result) > 0 and 'generated_text' in result[0]:
-                    humanized_sentences.append(result[0]['generated_text'])
-                elif isinstance(result, dict) and 'generated_text' in result:
-                    humanized_sentences.append(result['generated_text'])
-                else:
-                    humanized_sentences.append(sentence)
-            except:
-                humanized_sentences.append(sentence)
-        else:
-            humanized_sentences.append(sentence)
-            
-    return " ".join(humanized_sentences)
+    # Addım 3: YouTube üçün danışıq dili filtri və robotik sözlərin təmizlənməsi
+    humanized = re.sub(r'\b(Furthermore|Moreover|In conclusion|Crucial|Essential|Testament|Notably)\b', '', humanized, flags=re.IGNORECASE)
+    return humanized.strip()
 
 if st.button("Humanize Text and Break AI Watermarks"):
     if ham_metn:
-        with st.spinner("Professional AI model is rewriting your script..."):
-            temiz_cikti = ai_humanize(ham_metn)
+        with st.spinner("Rewriting sentence architectures and breaking statistical patterns..."):
+            temiz_cikti = pro_humanize(ham_metn)
             
             st.subheader("✨ Humanized YouTube Script:")
             st.text_area("Ready to Copy:", value=temiz_cikti, height=200)
