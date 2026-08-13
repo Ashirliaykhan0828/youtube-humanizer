@@ -20,11 +20,10 @@ def gemini_humanize(text):
         "5. Output ONLY the rewritten text, nothing else."
     )
     
-    # ⚠️ Heç bir f-string və ya dəyişən istifadə etmədən, API açarını birbaşa rəsmi linkin sonuna bütöv şəkildə yapışdırdıq.
-    # Beləliklə, linkin zədələnmə ehtimalı 0%-ə düşdü.
     url = "https://googleapis.com"
-    
     headers = {"Content-Type": "application/json"}
+    
+    # ⚠️ Google Gemini API-nin rəsmi tələb etdiyi tam və qüsursuz məlumat strukturu (Payload):
     payload = {
         "contents": [{
             "parts": [{
@@ -37,12 +36,16 @@ def gemini_humanize(text):
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         result = response.json()
         
+        # Google-dan gələn cavabı rəsmi struktura uyğun olaraq daxildən oxuyuruq
         if 'candidates' in result and len(result['candidates']) > 0:
-            return result['candidates']['content']['parts']['text']
-        elif 'error' in result:
+            content = result['candidates'][0]['content']
+            if 'parts' in content and len(content['parts']) > 0:
+                return content['parts'][0]['text']
+        
+        if 'error' in result:
             return "API Error: " + str(result['error']['message'])
-        else:
-            return "Error: Google Gemini returned an unexpected data structure."
+            
+        return "Error: Google Gemini returned an unexpected data structure. Response: " + str(result)
     except Exception as e:
         return "Connection error to Google Server. Details: " + str(e)
 
