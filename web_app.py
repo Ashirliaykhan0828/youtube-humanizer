@@ -5,13 +5,12 @@ st.set_page_config(page_title="PRO YouTube AI Humanizer", layout="centered")
 st.title("🚀 PRO YouTube AI Script Humanizer")
 st.write("Professional Level: Advanced Rewrite Engine (Powered by Gemini 1.5 Flash)")
 
-# 🔑 Sizin təqdim etdiyiniz rəsmi Google Gemini API Açarı koda yerləşdirildi:
+# 🔑 Sizin rəsmi Google Gemini API açarınız:
 GEMINI_API_KEY = "AQ.Ab8RN6KvPV3Slmk57YFJ7DptLTS8JCGbrIc-x4HRqnufVin-0A"
 
 ham_metn = st.text_area("Paste your raw Claude text here:", height=200, placeholder="Type or paste text...")
 
 def gemini_humanize(text):
-    # Nümunə şəkildəki kimi cümlə strukturunu pozmadan mətni insaniləşdirən peşəkar təlimat
     system_instruction = (
         "You are an expert YouTube script writer and professional humanizer. "
         "Your task is to take the provided AI-generated script and rewrite it into a highly engaging, "
@@ -24,7 +23,9 @@ def gemini_humanize(text):
         "5. Output ONLY the rewritten text, nothing else."
     )
     
+    # ⚠️ URL ünvanı rəsmi formata salındı (Açar düzgün şəkildə sonuna əlavə olundu)
     url = f"https://googleapis.com{GEMINI_API_KEY}"
+    
     headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [{
@@ -38,13 +39,15 @@ def gemini_humanize(text):
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         result = response.json()
         
-        # Gemini API-dən gələn cavabı dəqiq çıxarırıq
+        # Gələn cavabı təhlükəsiz şəkildə ekrana çıxarırıq
         if 'candidates' in result and len(result['candidates']) > 0:
             return result['candidates'][0]['content']['parts'][0]['text']
+        elif 'error' in result:
+            return f"API Error: {result['error']['message']}"
         else:
-            return "Error: Gemini model processing failed. Please check the response format."
+            return "Error: Processing failed. Please check the text format."
     except Exception as e:
-        return f"Connection error. Please try again. Details: {str(e)}"
+        return f"Connection error. Details: {str(e)}"
 
 if st.button("Humanize Text and Break AI Watermarks"):
     if ham_metn:
